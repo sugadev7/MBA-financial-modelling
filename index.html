@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Financial Modelling Toolkit — Sugadev V</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #f7f6f3;
+    --surface: #ffffff;
+    --border: #e2e0d8;
+    --border-strong: #c8c5bb;
+    --text: #1a1917;
+    --text-muted: #6b6860;
+    --text-hint: #a09e98;
+    --accent: #1a1917;
+    --accent-light: #f0efe9;
+    --green: #15803d;
+    --green-bg: #f0fdf4;
+    --red: #b91c1c;
+    --red-bg: #fef2f2;
+    --mono: 'DM Mono', monospace;
+  }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 2rem 1rem; }
+
+  header { max-width: 860px; margin: 0 auto 2rem; }
+  header h1 { font-size: 20px; font-weight: 500; margin-bottom: 3px; }
+  header p { font-size: 13px; color: var(--text-muted); }
+
+  .container { max-width: 860px; margin: 0 auto; }
+
+  .tabs { display: flex; gap: 4px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 4px; flex-wrap: wrap; margin-bottom: 1.25rem; }
+  .tab { font-size: 13px; padding: 8px 18px; border-radius: 8px; border: none; background: transparent; color: var(--text-muted); cursor: pointer; font-family: 'DM Sans', sans-serif; white-space: nowrap; transition: all 0.15s; }
+  .tab:hover { background: var(--accent-light); color: var(--text); }
+  .tab.active { background: var(--accent); color: #fff; font-weight: 500; }
+
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 2rem; }
+  .pane { display: none; } .pane.active { display: block; }
+  .panel-title { font-size: 16px; font-weight: 500; margin-bottom: 4px; }
+  .panel-sub { font-size: 13px; color: var(--text-muted); margin-bottom: 1.5rem; line-height: 1.5; }
+
+  .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 1.25rem; }
+  .grid3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 1.25rem; }
+  .field { display: flex; flex-direction: column; gap: 5px; }
+  .field label { font-size: 11px; color: var(--text-hint); text-transform: uppercase; letter-spacing: 0.06em; }
+  input, select { font-family: 'DM Sans', sans-serif; font-size: 13px; padding: 9px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); width: 100%; transition: border-color 0.15s; }
+  input:focus, select:focus { outline: none; border-color: var(--border-strong); background: var(--surface); }
+
+  .calc-btn { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; padding: 9px 22px; border-radius: 8px; border: none; background: var(--accent); color: #fff; cursor: pointer; margin-bottom: 1.5rem; transition: opacity 0.15s; }
+  .calc-btn:hover { opacity: 0.85; }
+
+  .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 1.5rem; }
+  .metric { background: var(--bg); border-radius: 8px; padding: 14px; border: 1px solid var(--border); }
+  .metric .m-label { font-size: 11px; color: var(--text-hint); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 5px; }
+  .metric .m-val { font-size: 22px; font-weight: 500; font-family: var(--mono); color: var(--text); }
+  .metric .m-sub { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
+  .metric.good .m-val { color: var(--green); }
+  .metric.bad .m-val { color: var(--red); }
+
+  .section-label { font-size: 11px; color: var(--text-hint); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 10px; }
+  .divider { border: none; border-top: 1px solid var(--border); margin: 1.25rem 0; }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 10px; font-size: 12px; color: var(--text-muted); }
+  .legend span { display: flex; align-items: center; gap: 5px; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+
+  table { width: 100%; font-size: 13px; border-collapse: collapse; margin-top: 1rem; }
+  th { font-size: 11px; color: var(--text-hint); text-transform: uppercase; letter-spacing: 0.05em; padding: 8px; text-align: left; border-bottom: 1px solid var(--border); }
+  td { padding: 8px; border-bottom: 1px solid var(--border); color: var(--text); font-family: var(--mono); }
+  td:first-child { font-family: 'DM Sans', sans-serif; color: var(--text-muted); }
+  .pos { color: var(--green); } .neg { color: var(--red); }
+
+  footer { max-width: 860px; margin: 2rem auto 0; text-align: center; font-size: 12px; color: var(--text-hint); line-height: 1.8; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Financial Modelling Toolkit</h1>
+  <p>DCF Valuation · Ratio Analysis · Loan & EMI · Break-even &nbsp;·&nbsp; No internet required</p>
+</header>
+
+<div class="container">
+  <div class="tabs">
+    <button class="tab active" onclick="sw('dcf',this)">DCF Valuation</button>
+    <button class="tab" onclick="sw('ratio',this)">Ratio Analysis</button>
+    <button class="tab" onclick="sw('emi',this)">Loan / EMI</button>
+    <button class="tab" onclick="sw('breakeven',this)">Break-even</button>
+  </div>
+
+  <div class="panel">
+
+    <!-- DCF -->
+    <div id="p-dcf" class="pane active">
+      <p class="panel-title">DCF Valuation Model</p>
+      <p class="panel-sub">Discounted Cash Flow — estimate the intrinsic value of a company based on projected free cash flows.</p>
+      <div class="grid2">
+        <div class="field"><label>Base Free Cash Flow (₹ Cr)</label><input type="number" id="dcf-fcf" value="100"></div>
+        <div class="field"><label>Revenue Growth Rate (%)</label><input type="number" id="dcf-g" value="15"></div>
+        <div class="field"><label>Terminal Growth Rate (%)</label><input type="number" id="dcf-tg" value="4"></div>
+        <div class="field"><label>WACC / Discount Rate (%)</label><input type="number" id="dcf-wacc" value="12"></div>
+        <div class="field"><label>Projection Years</label><select id="dcf-yr"><option>5</option><option selected>10</option></select></div>
+        <div class="field"><label>Net Debt (₹ Cr)</label><input type="number" id="dcf-debt" value="200"></div>
+        <div class="field"><label>Shares Outstanding (Cr)</label><input type="number" id="dcf-shares" value="50"></div>
+      </div>
+      <button class="calc-btn" onclick="calcDCF()">Calculate Intrinsic Value →</button>
+      <div id="dcf-out" style="display:none">
+        <div class="metrics" id="dcf-metrics"></div>
+        <div class="divider"></div>
+        <p class="section-label">Year-wise projected cash flows</p>
+        <div class="legend">
+          <span><span class="legend-dot" style="background:#378ADD"></span>Free Cash Flow (₹ Cr)</span>
+          <span><span class="legend-dot" style="background:#1D9E75"></span>PV of FCF (₹ Cr)</span>
+        </div>
+        <div style="position:relative;width:100%;height:280px"><canvas id="dcf-chart" role="img" aria-label="DCF projected cash flows bar chart"></canvas></div>
+        <div style="overflow-x:auto">
+          <table id="dcf-table">
+            <thead><tr><th>Year</th><th>FCF (₹ Cr)</th><th>Discount Factor</th><th>PV of FCF (₹ Cr)</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Ratio Analysis -->
+    <div id="p-ratio" class="pane">
+      <p class="panel-title">Financial Ratio Analysis</p>
+      <p class="panel-sub">Enter P&L and Balance Sheet figures to compute 8 key financial ratios with industry benchmarks.</p>
+      <div class="grid3">
+        <div class="field"><label>Revenue (₹ Cr)</label><input type="number" id="ra-rev" value="2000"></div>
+        <div class="field"><label>EBITDA (₹ Cr)</label><input type="number" id="ra-ebitda" value="400"></div>
+        <div class="field"><label>EBIT (₹ Cr)</label><input type="number" id="ra-ebit" value="300"></div>
+        <div class="field"><label>Net Profit (₹ Cr)</label><input type="number" id="ra-np" value="200"></div>
+        <div class="field"><label>Total Assets (₹ Cr)</label><input type="number" id="ra-ta" value="5000"></div>
+        <div class="field"><label>Total Equity (₹ Cr)</label><input type="number" id="ra-eq" value="3000"></div>
+        <div class="field"><label>Total Debt (₹ Cr)</label><input type="number" id="ra-debt" value="800"></div>
+        <div class="field"><label>Current Assets (₹ Cr)</label><input type="number" id="ra-ca" value="1200"></div>
+        <div class="field"><label>Current Liabilities (₹ Cr)</label><input type="number" id="ra-cl" value="700"></div>
+        <div class="field"><label>Interest Expense (₹ Cr)</label><input type="number" id="ra-int" value="60"></div>
+        <div class="field"><label>Market Cap (₹ Cr)</label><input type="number" id="ra-mc" value="8000"></div>
+        <div class="field"><label>EPS (₹)</label><input type="number" id="ra-eps" value="40"></div>
+      </div>
+      <button class="calc-btn" onclick="calcRatio()">Compute Ratios →</button>
+      <div id="ratio-out" style="display:none">
+        <div class="metrics" id="ratio-metrics"></div>
+        <div class="divider"></div>
+        <p class="section-label">Your company vs industry benchmark</p>
+        <div class="legend">
+          <span><span class="legend-dot" style="background:#378ADD"></span>Your company</span>
+          <span><span class="legend-dot" style="background:#1D9E75"></span>Industry benchmark</span>
+        </div>
+        <div style="position:relative;width:100%;height:300px"><canvas id="ratio-chart" role="img" aria-label="Financial ratio comparison bar chart"></canvas></div>
+      </div>
+    </div>
+
+    <!-- EMI -->
+    <div id="p-emi" class="pane">
+      <p class="panel-title">Loan & EMI Calculator</p>
+      <p class="panel-sub">Compute your monthly EMI, total interest paid, and see a year-wise principal vs interest breakdown.</p>
+      <div class="grid2">
+        <div class="field"><label>Loan Amount (₹)</label><input type="number" id="emi-p" value="5000000"></div>
+        <div class="field"><label>Annual Interest Rate (%)</label><input type="number" id="emi-r" value="8.5"></div>
+        <div class="field"><label>Tenure (Years)</label><input type="number" id="emi-t" value="20"></div>
+      </div>
+      <button class="calc-btn" onclick="calcEMI()">Calculate EMI →</button>
+      <div id="emi-out" style="display:none">
+        <div class="metrics" id="emi-metrics"></div>
+        <div class="divider"></div>
+        <p class="section-label">Year-wise principal vs interest</p>
+        <div class="legend">
+          <span><span class="legend-dot" style="background:#378ADD"></span>Principal</span>
+          <span><span class="legend-dot" style="background:#D85A30"></span>Interest</span>
+        </div>
+        <div style="position:relative;width:100%;height:280px"><canvas id="emi-chart" role="img" aria-label="EMI principal vs interest stacked bar chart"></canvas></div>
+      </div>
+    </div>
+
+    <!-- Break-even -->
+    <div id="p-breakeven" class="pane">
+      <p class="panel-title">Break-even Analysis</p>
+      <p class="panel-sub">Find the exact point where revenue covers all costs. Calculate contribution margin, break-even units, and margin of safety.</p>
+      <div class="grid2">
+        <div class="field"><label>Fixed Costs (₹ Cr / year)</label><input type="number" id="be-fc" value="50"></div>
+        <div class="field"><label>Selling Price per Unit (₹)</label><input type="number" id="be-sp" value="500"></div>
+        <div class="field"><label>Variable Cost per Unit (₹)</label><input type="number" id="be-vc" value="300"></div>
+        <div class="field"><label>Expected Units Sold</label><input type="number" id="be-units" value="400000"></div>
+      </div>
+      <button class="calc-btn" onclick="calcBE()">Calculate Break-even →</button>
+      <div id="be-out" style="display:none">
+        <div class="metrics" id="be-metrics"></div>
+        <div class="divider"></div>
+        <p class="section-label">Revenue vs total cost</p>
+        <div class="legend">
+          <span><span class="legend-dot" style="background:#378ADD"></span>Revenue</span>
+          <span><span class="legend-dot" style="background:#D85A30"></span>Total Cost</span>
+          <span><span class="legend-dot" style="background:#1D9E75"></span>Fixed Cost</span>
+        </div>
+        <div style="position:relative;width:100%;height:280px"><canvas id="be-chart" role="img" aria-label="Break-even revenue vs cost line chart"></canvas></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<footer>
+  Financial Modelling Toolkit &nbsp;·&nbsp; For educational use &nbsp;·&nbsp; Not financial advice<br>
+  <span>Built by <strong>Sugadev V</strong> &nbsp;·&nbsp; <a href="mailto:vsugadev.77@gmail.com" style="color:inherit;text-decoration:underline;">vsugadev.77@gmail.com</a></span>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+  const charts = {};
+
+  function sw(id, btn) {
+    document.querySelectorAll('.pane').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+    document.getElementById('p-' + id).classList.add('active');
+    btn.classList.add('active');
+  }
+
+  function fmt(n) { return '₹' + n.toLocaleString('en-IN', { maximumFractionDigits: 0 }); }
+  function fmtCr(n) { return '₹' + n.toFixed(1) + ' Cr'; }
+  function mkChart(id, cfg) { if (charts[id]) charts[id].destroy(); charts[id] = new Chart(document.getElementById(id), cfg); }
+  function good(v, bench) { return parseFloat(v) >= bench ? 'good' : 'bad'; }
+
+  function calcDCF() {
+    const fcf = +document.getElementById('dcf-fcf').value;
+    const g = +document.getElementById('dcf-g').value / 100;
+    const tg = +document.getElementById('dcf-tg').value / 100;
+    const wacc = +document.getElementById('dcf-wacc').value / 100;
+    const yr = +document.getElementById('dcf-yr').value;
+    const debt = +document.getElementById('dcf-debt').value;
+    const shares = +document.getElementById('dcf-shares').value;
+
+    let pvSum = 0, fcfs = [], pvs = [], labels = [], dfs = [], cf = fcf;
+    for (let i = 1; i <= yr; i++) {
+      cf = cf * (1 + g);
+      const df = 1 / Math.pow(1 + wacc, i);
+      const pv = cf * df;
+      pvSum += pv;
+      fcfs.push(+cf.toFixed(1));
+      pvs.push(+pv.toFixed(1));
+      dfs.push(df.toFixed(4));
+      labels.push('Year ' + i);
+    }
+    const terminalVal = cf * (1 + tg) / (wacc - tg);
+    const pvTerminal = terminalVal / Math.pow(1 + wacc, yr);
+    const enterpriseVal = pvSum + pvTerminal;
+    const equityVal = enterpriseVal - debt;
+    const intrinsic = equityVal / shares;
+
+    document.getElementById('dcf-out').style.display = 'block';
+    document.getElementById('dcf-metrics').innerHTML = `
+      <div class="metric"><div class="m-label">PV of FCFs</div><div class="m-val">${fmtCr(pvSum)}</div></div>
+      <div class="metric"><div class="m-label">Terminal Value (PV)</div><div class="m-val">${fmtCr(pvTerminal)}</div></div>
+      <div class="metric"><div class="m-label">Enterprise Value</div><div class="m-val">${fmtCr(enterpriseVal)}</div></div>
+      <div class="metric good"><div class="m-label">Intrinsic Value / Share</div><div class="m-val">₹${intrinsic.toFixed(0)}</div><div class="m-sub">Equity Value = ${fmtCr(equityVal)}</div></div>`;
+
+    const tbody = document.querySelector('#dcf-table tbody');
+    tbody.innerHTML = fcfs.map((f, i) => `<tr><td>Year ${i + 1}</td><td>${fmtCr(f)}</td><td>${dfs[i]}</td><td class="pos">${fmtCr(pvs[i])}</td></tr>`).join('');
+
+    mkChart('dcf-chart', {
+      type: 'bar',
+      data: { labels, datasets: [
+        { label: 'FCF', data: fcfs, backgroundColor: '#378ADD', borderRadius: 4 },
+        { label: 'PV of FCF', data: pvs, backgroundColor: '#1D9E75', borderRadius: 4 }
+      ]},
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { ticks: { autoSkip: false, maxRotation: 45 } }, y: { ticks: { callback: v => v + 'Cr' } } } }
+    });
+  }
+
+  function calcRatio() {
+    const rev = +document.getElementById('ra-rev').value;
+    const ebitda = +document.getElementById('ra-ebitda').value;
+    const ebit = +document.getElementById('ra-ebit').value;
+    const np = +document.getElementById('ra-np').value;
+    const ta = +document.getElementById('ra-ta').value;
+    const eq = +document.getElementById('ra-eq').value;
+    const debt = +document.getElementById('ra-debt').value;
+    const ca = +document.getElementById('ra-ca').value;
+    const cl = +document.getElementById('ra-cl').value;
+    const intExp = +document.getElementById('ra-int').value;
+    const mc = +document.getElementById('ra-mc').value;
+
+    const npm = (np / rev * 100).toFixed(1);
+    const ebitdaM = (ebitda / rev * 100).toFixed(1);
+    const roe = (np / eq * 100).toFixed(1);
+    const roa = (np / ta * 100).toFixed(1);
+    const cr = (ca / cl).toFixed(2);
+    const de = (debt / eq).toFixed(2);
+    const ice = (ebit / intExp).toFixed(1);
+    const pe = (mc / np).toFixed(1);
+
+    document.getElementById('ratio-out').style.display = 'block';
+    document.getElementById('ratio-metrics').innerHTML = `
+      <div class="metric ${good(npm, 10)}"><div class="m-label">Net Profit Margin</div><div class="m-val">${npm}%</div><div class="m-sub">Benchmark: >10%</div></div>
+      <div class="metric ${good(ebitdaM, 20)}"><div class="m-label">EBITDA Margin</div><div class="m-val">${ebitdaM}%</div><div class="m-sub">Benchmark: >20%</div></div>
+      <div class="metric ${good(roe, 15)}"><div class="m-label">ROE</div><div class="m-val">${roe}%</div><div class="m-sub">Benchmark: >15%</div></div>
+      <div class="metric ${good(roa, 8)}"><div class="m-label">ROA</div><div class="m-val">${roa}%</div><div class="m-sub">Benchmark: >8%</div></div>
+      <div class="metric ${good(cr, 1.5)}"><div class="m-label">Current Ratio</div><div class="m-val">${cr}x</div><div class="m-sub">Benchmark: >1.5x</div></div>
+      <div class="metric ${parseFloat(de) <= 1 ? 'good' : 'bad'}"><div class="m-label">Debt / Equity</div><div class="m-val">${de}x</div><div class="m-sub">Benchmark: <1x</div></div>
+      <div class="metric ${good(ice, 3)}"><div class="m-label">Interest Coverage</div><div class="m-val">${ice}x</div><div class="m-sub">Benchmark: >3x</div></div>
+      <div class="metric"><div class="m-label">P/E Ratio</div><div class="m-val">${pe}x</div><div class="m-sub">Market avg: ~25x</div></div>`;
+
+    mkChart('ratio-chart', {
+      type: 'bar',
+      data: { labels: ['NPM %', 'EBITDA %', 'ROE %', 'ROA %'], datasets: [
+        { label: 'Your company', data: [parseFloat(npm), parseFloat(ebitdaM), parseFloat(roe), parseFloat(roa)], backgroundColor: '#378ADD', borderRadius: 4 },
+        { label: 'Benchmark', data: [10, 20, 15, 8], backgroundColor: '#1D9E75', borderRadius: 4 }
+      ]},
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { ticks: { callback: v => v + '%' } }, x: { ticks: { autoSkip: false } } } }
+    });
+  }
+
+  function calcEMI() {
+    const p = +document.getElementById('emi-p').value;
+    const r = +document.getElementById('emi-r').value / 100 / 12;
+    const n = +document.getElementById('emi-t').value * 12;
+    const emi = p * r * Math.pow(1 + r, n) / (Math.pow(1 + r, n) - 1);
+    const total = emi * n;
+    const interest = total - p;
+
+    document.getElementById('emi-out').style.display = 'block';
+    document.getElementById('emi-metrics').innerHTML = `
+      <div class="metric good"><div class="m-label">Monthly EMI</div><div class="m-val">${fmt(Math.round(emi))}</div></div>
+      <div class="metric"><div class="m-label">Total Payment</div><div class="m-val">${fmt(Math.round(total))}</div></div>
+      <div class="metric bad"><div class="m-label">Total Interest</div><div class="m-val">${fmt(Math.round(interest))}</div></div>
+      <div class="metric"><div class="m-label">Interest %</div><div class="m-val">${(interest / total * 100).toFixed(1)}%</div></div>`;
+
+    const yrs = +document.getElementById('emi-t').value;
+    const ylabels = [], yprin = [], yint = [];
+    let bal = p;
+    for (let y = 1; y <= yrs; y++) {
+      let yp = 0, yi = 0;
+      for (let m = 0; m < 12; m++) { const i = bal * r; const pr = emi - i; yi += i; yp += pr; bal -= pr; }
+      ylabels.push('Y' + y); yprin.push(Math.round(yp)); yint.push(Math.round(yi));
+    }
+    mkChart('emi-chart', {
+      type: 'bar',
+      data: { labels: ylabels, datasets: [
+        { label: 'Principal', data: yprin, backgroundColor: '#378ADD', borderRadius: 2 },
+        { label: 'Interest', data: yint, backgroundColor: '#D85A30', borderRadius: 2 }
+      ]},
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { stacked: true, ticks: { autoSkip: true, maxTicksLimit: 10 } }, y: { stacked: true, ticks: { callback: v => '₹' + Math.round(v / 100000) + 'L' } } } }
+    });
+  }
+
+  function calcBE() {
+    const fc = +document.getElementById('be-fc').value * 10000000;
+    const sp = +document.getElementById('be-sp').value;
+    const vc = +document.getElementById('be-vc').value;
+    const units = +document.getElementById('be-units').value;
+    const cm = sp - vc;
+    const beUnits = Math.ceil(fc / cm);
+    const beRev = beUnits * sp / 10000000;
+    const actualProfit = (units * cm - fc) / 10000000;
+    const mos = ((units - beUnits) / units * 100).toFixed(1);
+
+    document.getElementById('be-out').style.display = 'block';
+    document.getElementById('be-metrics').innerHTML = `
+      <div class="metric"><div class="m-label">Break-even Units</div><div class="m-val">${beUnits.toLocaleString('en-IN')}</div></div>
+      <div class="metric"><div class="m-label">Break-even Revenue</div><div class="m-val">${fmtCr(beRev)}</div></div>
+      <div class="metric ${actualProfit >= 0 ? 'good' : 'bad'}"><div class="m-label">Expected Profit</div><div class="m-val">${fmtCr(actualProfit)}</div></div>
+      <div class="metric good"><div class="m-label">Margin of Safety</div><div class="m-val">${mos}%</div></div>`;
+
+    const pts = 10, step = units * 1.5 / pts;
+    const ulabels = [], revs = [], tcs = [], fcs2 = [];
+    for (let i = 0; i <= pts; i++) {
+      const u = Math.round(step * i);
+      ulabels.push((u / 1000).toFixed(0) + 'K');
+      revs.push(+(u * sp / 10000000).toFixed(2));
+      tcs.push(+((fc + u * vc) / 10000000).toFixed(2));
+      fcs2.push(+(fc / 10000000).toFixed(2));
+    }
+    mkChart('be-chart', {
+      type: 'line',
+      data: { labels: ulabels, datasets: [
+        { label: 'Revenue', data: revs, borderColor: '#378ADD', backgroundColor: 'transparent', borderWidth: 2, pointRadius: 0 },
+        { label: 'Total Cost', data: tcs, borderColor: '#D85A30', backgroundColor: 'transparent', borderWidth: 2, pointRadius: 0, borderDash: [6, 3] },
+        { label: 'Fixed Cost', data: fcs2, borderColor: '#1D9E75', backgroundColor: 'transparent', borderWidth: 1.5, pointRadius: 0, borderDash: [3, 3] }
+      ]},
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { ticks: { autoSkip: true, maxTicksLimit: 6 } }, y: { ticks: { callback: v => '₹' + v + 'Cr' } } } }
+    });
+  }
+</script>
+</body>
+</html>
